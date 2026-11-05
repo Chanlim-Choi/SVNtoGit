@@ -26,12 +26,18 @@ big=$(git rev-list --objects --branches --tags | git cat-file --batch-check='%(o
 if [ -z "$REMOTE" ]; then
   [ -n "$TARGET" ] || { echo "need OWNER/NAME or --remote URL"; exit 2; }
   gh auth status >/dev/null 2>&1 || { echo "ERROR: gh is not authenticated (gh auth login, or set GH_TOKEN)"; exit 1; }
+  REMOTE="https://github.com/$TARGET.git"
+  # let git and git-lfs authenticate with the gh login (repository-local; the empty value
+  # clears helpers inherited from global config so a stale stored token is not used)
+  git config --local --unset-all credential.https://github.com.helper 2>/dev/null || true
+  git config --local --add credential.https://github.com.helper ''
+  git config --local --add credential.https://github.com.helper '!gh auth git-credential'
   if ! gh repo view "$TARGET" >/dev/null 2>&1; then
     run gh repo create "$TARGET" --private --description "Migrated from SVN"
-  elif [ "$(gh api "repos/$TARGET" --jq .size)" != "0" ]; then
+  elif [ -n "$(git ls-remote "$REMOTE")" ]; then
+    # (the API "size" field lags behind pushes, so ask the remote itself for refs)
     echo "ERROR: $TARGET already has content; refusing to push into a non-empty repository"; exit 1
   fi
-  REMOTE="https://github.com/$TARGET.git"
 fi
 # a local path that does not exist yet is created as a bare repository (handy for tests)
 if [[ "$REMOTE" != *://* && "$REMOTE" != *@*:* && ! -e "$REMOTE" ]]; then git init -q --bare "$REMOTE"; fi

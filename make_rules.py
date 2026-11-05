@@ -15,7 +15,7 @@ Names illegal in git are sanitized; the renames are printed to stderr.
 """
 import json, re, sys
 
-revs = json.load(open(sys.argv[1]))
+revs = json.load(open(sys.argv[1], encoding="utf-8"))
 LAYOUT = ("trunk", "branches", "tags")
 
 def projects():
@@ -58,11 +58,38 @@ for v in revs.values():
 roots = {(k, r) for k, r in roots
          if not any(r != o and r.startswith(o + "/") and k == ko for ko, o in roots)}
 
-def sanitize(n):
+def sanitize(n):   # keep identical in verify.py and migrate_gitsvn.sh
     s = re.sub(r"\.\.+", ".", n)
-    s = re.sub(r"[ ~^:?*\[\\]", "-", s)
-    s = re.sub(r"@\{", "-", s).strip("/.").replace("/.", "/")
-    return s
+    s = re.sub(r"[\x00-\x20\x7f~^:?*\[\\]", "-", s)
+    s = s.replace("@{", "-")
+    parts = []
+    for c in s.split("/"):          # git-check-ref-format rules per path component
+        c = c.strip(".")
+        if c.endswith(".lock"):
+            c = c[:-5] + "-lock"
+        if c:
+            parts.append(c)
+    s = "/".join(parts)
+    return "-" if s == "@" else (s or "unnamed")
+
+# Refuse names that would silently merge two SVN branches into one git ref, or that
+# git cannot store side by side. Checked here, before the (long) conversion runs.
+RESERVED = {"branches": {"master", "main", "svn-outside-layout"}, "tags": set()}
+targets, clashes = {}, []
+for kind, r in sorted(roots):
+    g = sanitize(r)
+    if g in RESERVED[kind] or (kind == "tags" and g.startswith("svn-deleted/")):
+        clashes.append(f"{kind}/{r} -> '{g}' is reserved by the migration")
+    if (kind, g) in targets:
+        clashes.append(f"{kind}/{targets[kind, g]} and {kind}/{r} both become '{g}'")
+    targets[kind, g] = r
+for (kind, g), r in targets.items():
+    for (k2, g2), r2 in targets.items():
+        if k2 == kind and g2.startswith(g + "/"):
+            clashes.append(f"{kind}/{r} ('{g}') and {kind}/{r2} ('{g2}') cannot both exist as git refs")
+if clashes:
+    sys.exit("ERROR: SVN branch/tag names collide after conversion to git ref names:\n  "
+             + "\n  ".join(clashes) + "\nRename the affected branches/tags in SVN (svn mv) and run again.")
 
 out.append(f"match {rx(P)}/trunk/\n  repository {name}\n  branch master\nend match\n")
 renamed = []

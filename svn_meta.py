@@ -47,17 +47,17 @@ for e in root.findall("logentry"):
         rp.pop(k, None)
     revs[r] = {"author": author, "date": date, "log": log or "", "revprops": rp, "paths": paths}
 
-json.dump(revs, open(f"{out}/log.json", "w"), ensure_ascii=False, indent=0)
+json.dump(revs, open(f"{out}/log.json", "w", encoding="utf-8"), ensure_ascii=False, indent=0)
 
 authors = sorted({v["author"] for v in revs.values() if v["author"]})
 def ident(a):
     login = a.split("\\")[-1]
     return f"{login.replace('.', ' ').title()} <{login}@example.com>"
-with open(f"{out}/authors.txt", "w") as f:
+with open(f"{out}/authors.txt", "w", encoding="utf-8") as f:
     for a in authors:
         f.write(f"{a} = {ident(a)}\n")
     f.write("(no author) = Unknown <unknown@example.com>\n")
-with open(f"{out}/identity.map", "w") as f:
+with open(f"{out}/identity.map", "w", encoding="utf-8") as f:
     for a in authors:
         f.write(f"{a} {ident(a)}\n")
     # svn-all-fast-export substitutes "nobody" for revisions without svn:author

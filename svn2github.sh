@@ -94,7 +94,10 @@ fi
 if [ -n "$PROJECT" ]; then PROJECTS=("$PROJECT")
 else mapfile -t PROJECTS < <(python3 -I "$HERE/make_rules.py" meta/log.json --detect); fi
 echo "projects: ${PROJECTS[*]}"
-pname() { case $1 in /|NONE) basename "$SVNREPO" | sed 's/[^A-Za-z0-9._-]/-/g';; *) echo "${1#/}" | sed 's#/#-#g; s/[^A-Za-z0-9._-]/-/g';; esac; }
+# name of the source repository: the directory, dump file (without extension) or last URL segment,
+# never the internal "svn-mirror" directory used for dumps and URLs
+SRCNAME=$(basename "${SRC%/}"); SRCNAME=${SRCNAME%.dump}; SRCNAME=${SRCNAME%.svndump}
+pname() { case $1 in /|NONE) echo "$SRCNAME" | sed 's/[^A-Za-z0-9._-]/-/g';; *) echo "${1#/}" | sed 's#/#-#g; s/[^A-Za-z0-9._-]/-/g';; esac; }
 
 migrate_project() {   # $1 = project prefix
   local P=$1 NAME; NAME=$(pname "$P")
@@ -134,15 +137,17 @@ migrate_project() {   # $1 = project prefix
 
   step "[$NAME] verify against SVN"
   set +e
+  local LFSARG=()
+  [ "$LFS_ABOVE" = off ] || LFSARG=(--lfs-above "$(numfmt --from=iec "${LFS_ABOVE%B}")")
   python3 -I "$HERE/verify.py" "$URL" "$GIT" "$OUT/meta/log.json" --samples "$SAMPLES" --project "$P" \
-    --authors "$OUT/meta/authors.txt" --json verify.json > verify.log 2>&1
+    --authors "$OUT/meta/authors.txt" ${LFSARG[@]+"${LFSARG[@]}"} --json verify.json > verify.log 2>&1
   local VERIFY=$?
   set -e
   sed -n '/^git commits=/,$p' verify.log
 
   step "[$NAME] report"
   python3 -I "$HERE/report.py" "$URL" "$D" "$GIT" "$P" || return 1
-  if [ $GITATTR = 1 ] && [ $VERIFY = 0 ] && grep -qv '^#' suggested.gitattributes; then
+  if [ $GITATTR = 1 ] && [ $VERIFY = 0 ] && grep -qvE '^(#|[[:space:]]*$)' suggested.gitattributes; then
     local WT; WT=$(mktemp -d -p "$D")
     git -C "$GIT" worktree add -q "$WT" main
     cp suggested.gitattributes "$WT/.gitattributes"

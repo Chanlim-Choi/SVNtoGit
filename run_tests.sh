@@ -8,7 +8,7 @@ export LC_ALL=C.UTF-8
 HERE=$(cd "$(dirname "$0")" && pwd)
 N=${1:-1500}
 W=${2:-$(mktemp -d)}
-mkdir -p "$W"; cd "$W"
+mkdir -p "$W"; W=$(realpath "$W"); cd "$W"   # absolute: used in file:// URLs below
 echo "workdir: $W"
 python3 -I "$HERE/gen_dump.py" test.dump "$N" --big
 svnadmin create svnrepo && svnadmin load -q svnrepo < test.dump

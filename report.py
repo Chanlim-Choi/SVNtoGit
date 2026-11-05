@@ -29,7 +29,7 @@ def load(name, default):
     p = os.path.join(out, name)
     if not os.path.exists(p):
         return default
-    return json.load(open(p)) if name.endswith(".json") else open(p).read()
+    return json.load(open(p, encoding="utf-8")) if name.endswith(".json") else open(p, encoding="utf-8", errors="replace").read()
 
 revs = load("meta/log.json", {})
 verify = load("verify.json", {"problems": {}, "fatal": []})
@@ -149,7 +149,7 @@ for e, s in sorted(by_ext.items()):
 for p, a in sorted(attrs.items()):
     if p not in done:
         lines.append(f"/{p.replace(' ', '[[:space:]]')} {a}")
-open(os.path.join(out, "suggested.gitattributes"), "w").write("\n".join(lines) + "\n")
+open(os.path.join(out, "suggested.gitattributes"), "w", encoding="utf-8").write("\n".join(lines) + "\n")
 w(f"\n### Line endings / binary flags\n\n{len(attrs)} files had `svn:eol-style` or a binary `svn:mime-type`. "
   "Git does not enforce these by itself; review and commit `suggested.gitattributes` as `.gitattributes`.")
 
@@ -158,5 +158,5 @@ w("- **Path-based read permissions (SVN authz)**: anyone who can read a GitHub r
   "Read-restricted paths must become separate repositories. Write restrictions map to GitHub rulesets / CODEOWNERS.")
 w("- **Revision numbers**: git commits get new IDs; the SVN revision is in each commit's note.")
 w("- **One SVN commit touching several branches** becomes one git commit per branch.")
-open(os.path.join(out, "MIGRATION_REPORT.md"), "w").write("\n".join(L) + "\n")
+open(os.path.join(out, "MIGRATION_REPORT.md"), "w", encoding="utf-8").write("\n".join(L) + "\n")
 print(f"wrote {out}/MIGRATION_REPORT.md and {out}/suggested.gitattributes")

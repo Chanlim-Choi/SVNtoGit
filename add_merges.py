@@ -23,7 +23,7 @@ from collections import defaultdict
 
 repo, logf = sys.argv[1], sys.argv[2]
 report_f = sys.argv[3] if len(sys.argv) > 3 and not sys.argv[3].startswith("--") else None
-revs = {int(k): v for k, v in json.load(open(logf)).items()}
+revs = {int(k): v for k, v in json.load(open(logf, encoding="utf-8")).items()}
 G = ["git", "-C", repo]
 
 def git(*a, **kw):

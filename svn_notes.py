@@ -10,7 +10,7 @@ commit message or in refs/notes/commits.
 import json, re, subprocess, sys
 
 repo, logf = sys.argv[1], sys.argv[2]
-revs = json.load(open(logf))
+revs = json.load(open(logf, encoding="utf-8"))
 G = ["git", "-C", repo]
 
 def git(*a, **kw):

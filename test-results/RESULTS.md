@@ -30,7 +30,9 @@
    - `git lfs fsck` OK, and the 60 MB file arrives intact
    - notes fetch and display correctly
 
-**Net result with the current code: every check passes on every commit.**
+**Expected result with the current code: every check passes on every commit.** This
+is inferred, not shown by a single run: the logs in this folder end in FAIL (see step 2),
+and the code was changed again during review (see `REVIEW.md`).
 No complete uninterrupted rerun was done after the last verifier fix: it takes about
 40 minutes and only that one commit's check changed. Run `./run_tests.sh 5000` to
 reproduce it.

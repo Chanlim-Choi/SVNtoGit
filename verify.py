@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Verify a migrated Git repo against its SVN source.
 
-usage: verify.py SVN_URL GIT_REPO LOG_JSON [--samples N] [--trailer]
+usage: verify.py SVN_URL GIT_REPO LOG_JSON [--samples N] [--project P] [--authors FILE]
+                 [--lfs-above BYTES] [--jobs N] [--json OUT]
 
 Checks
   1. every SVN branch/tag at HEAD has a Git ref, with identical file manifests
@@ -21,7 +22,7 @@ url, repo, logf = sys.argv[1].rstrip("/"), sys.argv[2], sys.argv[3]
 _s = sys.argv[sys.argv.index("--samples") + 1] if "--samples" in sys.argv else "all"
 N = 10**9 if _s == "all" else int(_s)
 JOBS = int(sys.argv[sys.argv.index("--jobs") + 1]) if "--jobs" in sys.argv else (os.cpu_count() or 4) * 2
-revs = {int(k): v for k, v in json.load(open(logf)).items()}
+revs = {int(k): v for k, v in json.load(open(logf, encoding="utf-8")).items()}
 env = dict(os.environ, LC_ALL="C.UTF-8")
 random.seed(7)
 PROJECT = sys.argv[sys.argv.index("--project") + 1] if "--project" in sys.argv else "/"
@@ -42,8 +43,8 @@ def bad(cat, msg):
 def run(*a, **kw):
     return subprocess.run(a, check=True, capture_output=True, env=env, **kw).stdout
 
-def git(*a):
-    return run("git", "-C", repo, *a)
+def git(*a, **kw):
+    return run("git", "-C", repo, *a, **kw)
 
 def blob_sha(data):
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
@@ -73,11 +74,14 @@ def svn_manifest(path, rev):
                     mode = "100755" if os.stat(p).st_mode & 0o111 else "100644"
                     data = open(p, "rb").read()
                     man[rel] = (mode, blob_sha(data))
-                    if len(data) > 1 << 20:
+                    if len(data) >= LFS_MIN:
                         BIG256[man[rel]] = hashlib.sha256(data).hexdigest()
         return man, empty
 
 BIG256 = {}
+# SVN files that may have become LFS pointers: anything above the --lfs-above threshold
+# (bytes) given by svn2github.sh. Capped at 1 MiB so a missing flag still covers the default.
+LFS_MIN = min(int(sys.argv[sys.argv.index("--lfs-above") + 1]), 1 << 20) if "--lfs-above" in sys.argv else 1 << 20
 LFS = re.compile(rb"^version https://git-lfs\S*\noid sha256:([0-9a-f]{64})\n")
 def lfs_ok(sv, gv):
     """git blob is an LFS pointer to exactly the SVN content"""
@@ -213,8 +217,17 @@ for line in git("for-each-ref", "--format=%(refname) %(objectname)", "refs/heads
 
 def sanitize(n):  # same renaming as make_rules.py / migrate_gitsvn.sh
     s = re.sub(r"\.\.+", ".", n)
-    s = re.sub(r"[ ~^:?*\[\\]", "-", s)
-    return re.sub(r"@\{", "-", s).strip("/.").replace("/.", "/")
+    s = re.sub(r"[\x00-\x20\x7f~^:?*\[\\]", "-", s)
+    s = s.replace("@{", "-")
+    parts = []
+    for c in s.split("/"):
+        c = c.strip(".")
+        if c.endswith(".lock"):
+            c = c[:-5] + "-lock"
+        if c:
+            parts.append(c)
+    s = "/".join(parts)
+    return "-" if s == "@" else (s or "unnamed")
 
 seen = set()
 for kind, items, prefix in (("branch", svn_branches, "refs/heads/"), ("tag", svn_tags, "refs/tags/")):
@@ -330,7 +343,7 @@ print(f"notes: {sum(1 for s in need if s in notes)}/{len(need)} commits have an 
       f"({sum(1 for s in need if revs[commits[s]['rev']]['revprops'])} with custom revprops)")
 
 # ---------- 6. GitHub limits -------------------------------------------------
-objs = run("sh", "-c", f"git -C '{repo}' rev-list --objects --all | git -C '{repo}' cat-file --batch-check='%(objecttype) %(objectsize) %(rest)'").decode()
+objs = git("cat-file", "--batch-check=%(objecttype) %(objectsize) %(rest)", input=git("rev-list", "--objects", "--all")).decode()
 for line in objs.splitlines():
     t, size, *rest = line.split(" ", 2)
     if t == "blob" and int(size) > 50 * 2**20:

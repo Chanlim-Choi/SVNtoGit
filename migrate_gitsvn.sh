@@ -26,8 +26,11 @@ git for-each-ref --format='%(refname)' refs/heads/ refs/tags/ | grep -vx refs/he
 
 # git svn escapes illegal ref chars as %XX: decode, then sanitize the same way as make_rules.py
 gitname() { python3 -I -c 'import re,sys,urllib.parse as u
-s=u.unquote(sys.argv[1]); s=re.sub(r"\.\.+",".",s); s=re.sub(r"[ ~^:?*\[\\]","-",s)
-print(re.sub(r"@\{","-",s).strip("/."))' "$1"; }
+s=u.unquote(sys.argv[1]); s=re.sub(r"\.\.+",".",s); s=re.sub(r"[\x00-\x20\x7f~^:?*\[\\]","-",s)
+s=s.replace("@{","-")
+parts=[c[:-5]+"-lock" if c.endswith(".lock") else c for c in (c.strip(".") for c in s.split("/"))]
+s="/".join(c for c in parts if c)
+print("-" if s=="@" else (s or "unnamed"))' "$1"; }
 LIVE_B=$(svn ls "$URL/branches" | sed 's#/$##'); LIVE_T=$(svn ls "$URL/tags" | sed 's#/$##')
 islive() { printf '%s\n' "$2" | grep -qxF -- "$1" || printf '%s\n' "$2" | grep -qxF -- "${1%%/*}"; }
 
