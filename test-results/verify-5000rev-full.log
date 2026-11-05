@@ -1,0 +1,33 @@
+git commits=5411  mapped to SVN=4974  svn revisions=5000  revisions represented=4973
+historical commits: 4973/4974 trees identical to SVN (ALL commits)
+merges: 123 SVN merges are git ancestry, 0 partial (cherry-pick) merges
+notes: 4974/4974 commits have an svn note (483 with custom revprops)
+repo size: count: 0 size-pack: 9.23 MiB
+
+================ REPORT ================
+[ok] empty dirs kept via .gitignore placeholder: 89119
+[ok] large files verified through LFS pointer: 1205
+[note] revisions missing (explained) x27
+    r1: layout creation (no files)
+    r412: only deletions (e.g. branch delete): /branches/feature-5
+    r495: only deletions (e.g. branch delete): /branches/feature-4
+    r697: only deletions (e.g. branch delete): /branches/feature-8
+    r925: only deletions (e.g. branch delete): /branches/feature-12
+    r1046: only deletions (e.g. branch delete): /branches/feature-3
+    r1355: only deletions (e.g. branch delete): /branches/feature-22
+    r1498: only deletions (e.g. branch delete): /branches/feature-23
+    ... 19 more
+[note] info: extra git refs (deleted SVN branches / nested dirs) x26
+    refs/heads/svn-outside-layout
+    refs/tags/svn-deleted/feature-11@1901
+    refs/tags/svn-deleted/feature-12@925
+    refs/tags/svn-deleted/feature-14@3501
+    refs/tags/svn-deleted/feature-16@1986
+    refs/tags/svn-deleted/feature-19@1647
+    refs/tags/svn-deleted/feature-1@1617
+    refs/tags/svn-deleted/feature-22@1355
+    ... 18 more
+[FAIL] tree x1
+    commit b2a6ba26f r1250 vs sandbox@1250: missing=1 extra=1 differ=0[] e.g. ['experiment.txt', 'sandbox/experiment.txt']
+
+RESULT: FAIL - 1 failing check(s)

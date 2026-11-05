@@ -1,0 +1,86 @@
+workdir: /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2
+revisions=5000 files_at_head=276271 branches=99 (alive 75) tags=83 {'empty_revs': 1, 'noauthor': 1, 'revprop_revs': 483}
+
+=== mirror: local copy of the SVN repository ===
+SVN: /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2/svnrepo (r5000)
+
+=== metadata: authors, messages, revision properties, file properties ===
+revisions=5000 authors=20 with_revprops=483 noauthor=1
+authors: all 21 SVN identities mapped from /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2/authors.txt
+projects: /
+
+=== [svnrepo] rules from copy history (project /) ===
+project=/ roots=182 renamed=3
+  branches/feature..bad -> feature.bad
+  branches/release 2.0 -> release-2.0
+  tags/v1.0~rc1 -> v1.0-rc1
+
+=== [svnrepo] convert (svn-all-fast-export) ===
+
+=== [svnrepo] SVN metadata as git notes (refs/notes/svn) ===
+notes written for 4974 commits (4973 distinct SVN revisions)
+
+=== [svnrepo] merge commits from svn:mergeinfo ===
+merges: 123 complete -> merge commits, 0 partial (cherry-picks, kept in notes only)
+replace repairs: 1 commits
+rewrote 4974 commits, injected 123 merge parents, fixed 1 placeholder authors, re-keyed notes in 2 refs
+
+=== [svnrepo] large files -> Git LFS ===
+notes set aside: {'refs/notes/commits': 4974, 'refs/notes/svn': 4974}
+ migrate: Sorting commits: ..., done.
+migrate: Rewriting commits: 100% (5411/5411), done.
+migrate: Updating refs: ..., done.
+
+refs/notes/commits: 4974 notes, 1720 re-keyed to rewritten commits
+refs/notes/svn: 4974 notes, 1720 re-keyed to rewritten commits
+count: 0
+size: 0 bytes
+in-pack: 81973
+packs: 1
+size-pack: 13.03 MiB
+prune-packable: 0
+garbage: 0
+size-garbage: 0 bytes
+
+
+=== [svnrepo] verify against SVN ===
+git commits=5411  mapped to SVN=4974  svn revisions=5000  revisions represented=4973
+historical commits: 4973/4974 trees identical to SVN (ALL commits)
+merges: 123 SVN merges are git ancestry, 0 partial (cherry-pick) merges
+notes: 4974/4974 commits have an svn note (483 with custom revprops)
+repo size: count: 0 size-pack: 9.23 MiB
+
+================ REPORT ================
+[ok] empty dirs kept via .gitignore placeholder: 89119
+[ok] large files verified through LFS pointer: 1205
+[note] revisions missing (explained) x27
+    r1: layout creation (no files)
+    r412: only deletions (e.g. branch delete): /branches/feature-5
+    r495: only deletions (e.g. branch delete): /branches/feature-4
+    r697: only deletions (e.g. branch delete): /branches/feature-8
+    r925: only deletions (e.g. branch delete): /branches/feature-12
+    r1046: only deletions (e.g. branch delete): /branches/feature-3
+    r1355: only deletions (e.g. branch delete): /branches/feature-22
+    r1498: only deletions (e.g. branch delete): /branches/feature-23
+    ... 19 more
+[note] info: extra git refs (deleted SVN branches / nested dirs) x26
+    refs/heads/svn-outside-layout
+    refs/tags/svn-deleted/feature-11@1901
+    refs/tags/svn-deleted/feature-12@925
+    refs/tags/svn-deleted/feature-14@3501
+    refs/tags/svn-deleted/feature-16@1986
+    refs/tags/svn-deleted/feature-19@1647
+    refs/tags/svn-deleted/feature-1@1617
+    refs/tags/svn-deleted/feature-22@1355
+    ... 18 more
+[FAIL] tree x1
+    commit b2a6ba26f r1250 vs sandbox@1250: missing=1 extra=1 differ=0[] e.g. ['experiment.txt', 'sandbox/experiment.txt']
+
+RESULT: FAIL - 1 failing check(s)
+
+=== [svnrepo] report ===
+wrote /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2/out/MIGRATION_REPORT.md and /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2/out/suggested.gitattributes
+[svnrepo] NOT PUSHING: verification failed (see /tmp/claude-0/-home-user/448c9cad-35cd-54f7-9d2e-0a9fd328ad1c/scratchpad/final2/out/verify.log)
+
+FAILED: /
+exit=1
