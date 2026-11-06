@@ -1,5 +1,9 @@
 # Test results
 
+> These are the results delivered with the toolkit, before either review round. Current results
+> (Linux container, `run_tests.sh 5000`, `layout_tests.sh`, and 64 scenarios in
+> `trigger_tests.sh`, all passing) are in `REVIEW.md`, under "Round 2", "Test results".
+
 ## Test repository (synthetic, `gen_dump.py`)
 
 - **Size:** 5,000 SVN revisions, 99 branches (24 deleted at some point), 83 tags, 20 authors, 483 revisions with custom revision properties.

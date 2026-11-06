@@ -22,6 +22,6 @@ git init -q --bare remote.git
 "$HERE/svn2github.sh" "$W/svnrepo" "$W/out" --authors authors.txt --push-remote "$W/remote.git"
 # the pushed copy must be a complete, LFS-resolvable clone
 git clone -q "$W/remote.git" "$W/clone"
-(cd "$W/clone" && git lfs pull -q && git lfs fsck >/dev/null && git fsck -q --no-dangling)
+(cd "$W/clone" && git lfs pull >/dev/null && git lfs fsck >/dev/null && git fsck --no-progress --no-dangling)
 [ "$(git -C "$W/remote.git" for-each-ref | wc -l)" = "$(git -C "$W/out/project" for-each-ref refs/heads refs/tags refs/notes | wc -l)" ]
 echo "TEST PASSED ($N revisions)"

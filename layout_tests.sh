@@ -32,7 +32,15 @@ mkdir -p remotes
 for p in projA projB; do
   test -d "remotes/$p.git" || { echo "missing remote $p"; exit 1; }
 done
-git -C remotes/projA.git show main:.gitattributes | grep -q 'eol=crlf' || { echo ".gitattributes not applied"; exit 1; }
+git -C remotes/projA.git cat-file -e main:.gitattributes || { echo ".gitattributes not applied"; exit 1; }
+# svn:eol-style CRLF maps to -text; a fresh clone must not show the CRLF file as modified
+# (a new index forces a content comparison)
+rm -rf clone-projA; git clone -q remotes/projA.git clone-projA
+a=$(git -C clone-projA check-attr text -- win.txt)
+[ "$a" = "win.txt: text: unset" ] || { echo "svn:eol-style CRLF not mapped to -text: $a"; exit 1; }
+rm -f clone-projA/.git/index; git -C clone-projA reset -q > /dev/null 2>&1 || true
+[ -z "$(git -C clone-projA status --porcelain)" ] ||
+  { echo "fresh clone of projA is not clean:"; git -C clone-projA status --porcelain; exit 1; }
 [ "$(git -C remotes/projA.git rev-list --merges main | wc -l)" = 1 ] || { echo "projA merge missing"; exit 1; }
 git -C remotes/projB.git rev-parse -q --verify refs/tags/1.0 >/dev/null || { echo "projB tag missing"; exit 1; }
 git -C remotes/projA.git ls-tree -r --name-only main | grep -q '^b.txt$' && { echo "projB file leaked into projA"; exit 1; }
